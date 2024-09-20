@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const mysql = require('mysql');
 const dotenv = require('dotenv');
+const request = require('request');
 
 dotenv.config();
 
@@ -69,11 +70,44 @@ app.post('/', (req, res) => {
   });
 });
 
+app.post('/docker_ping', (req, res) => {
+  const { hostname } = req.body; //hostname is the tunnel hostname. Example: vl0igh-ip-150-135-165-16.philipehrbright.tech
+
+  if (!hostname) {
+    return res.status(400).send('unauthorized');
+  }
+
+  //Send a request to https://philipehrbright.tech/tunnelmole-connections?password={password} to get the list of connected tunnels
+  //JSON parse the result, if the hostname is in the list, return 200, else return 403
+  request.get(`https://philipehrbright.tech/tunnelmole-connections?password=${process.env.TUNNELMOLE_PASSWORD}`, (err, response, body) => {
+    if (err) {
+      console.error('Error querying the tunnelmole:', err);
+      return res.status(500).send('Error querying the tunnelmole');
+    }
+
+    const connectedTunnels = JSON.parse(body);
+    const isTunnelConnected = connectedTunnels.some(tunnel => tunnel.hostname === hostname);
+    
+    if (isTunnelConnected) {
+      return res.status(200).send('connected');
+    } else {
+      return res.status(403).send('not_connected');
+    }
+
+  });
+
+});
+
+app.get('/docker_ping', (req, res) => {
+  return res.send('This is a POST endpoint!');
+});
+
 app.get('/', (req, res) => {
-    res.send('This is a POST endpoint only silly goose.');
+  return res.send('This is a POST endpoint!');
 });
 
 // Start the server
 app.listen(PORT, 'localhost', () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`http://localhost:${PORT}`);
 });
