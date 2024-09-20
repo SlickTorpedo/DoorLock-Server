@@ -1,0 +1,1 @@
+The Discord Bot. Used for handling stuff like adding new devices quickly.

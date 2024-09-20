@@ -1,0 +1,1 @@
+The device registrar. Written in different languages to allow them to be deployed anywhere easily. You can find the registrar in each language in the folder with the name of the language.
